@@ -36,25 +36,23 @@ def parse_ews_date(dateStr):
   localTz = timezone(timezoneLocation)
   return exchangeTz.localize(d).astimezone(localTz);
 
-def format_orgmode_date(dateObj):
-  return dateObj.strftime("%Y-%m-%d %H:%M")
+def format_remind_date(dateObj):
+  return dateObj.strftime("%b %d %Y AT %H:%M")
 
-def format_orgmode_time(dateObj):
+def format_remind_time(dateObj):
   return dateObj.strftime("%H:%M")
 
-# Helper function to write an orgmode entry
-def print_orgmode_entry(subject, start, end, location):
-  print "* " + subject.encode('ascii', 'ignore')
+def print_remind_entry(subject, start, end, location):
   startDate = parse_ews_date(start);
   endDate = parse_ews_date(end);
-  # Check if the appointment starts and ends on the same day and use proper formatting
-  if startDate.date() == endDate.date():
-    print "<" +  format_orgmode_date(startDate) + "-" + format_orgmode_time(endDate) + ">"
-  else:
-    print "<" +  format_orgmode_date(startDate) + ">--<" + format_orgmode_date(endDate) + ">"
-
+  duration = endDate-startDate
+  dur_hours = duration.seconds/3600
+  dur_mins = (duration.seconds-(dur_hours*3600))/60
+  print 'REM', format_remind_date(startDate),
+  print 'DURATION %i:%02i' % (dur_hours, dur_mins),
+  print 'MSG', subject.encode('ascii', 'ignore'),
   if location is not None:
-    print "Location: " + location.encode('utf-8')
+    print "Location:", location.encode('utf-8')
 
 #Debug code
 #print_orgmode_entry("subject", "2012-07-27T11:10:53Z", "2012-07-27T11:15:53Z", "location", "participants")
@@ -118,4 +116,4 @@ for element in elements:
   location= element.find('{http://schemas.microsoft.com/exchange/services/2006/types}Location').text
   start = element.find('{http://schemas.microsoft.com/exchange/services/2006/types}Start').text
   end = element.find('{http://schemas.microsoft.com/exchange/services/2006/types}End').text
-  print_orgmode_entry(subject, start, end, location)
+  print_remind_entry(subject, start, end, location)
